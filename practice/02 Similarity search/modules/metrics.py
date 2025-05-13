@@ -1,65 +1,53 @@
 import numpy as np
 
 
-def ED_distance(ts1: np.ndarray, ts2: np.ndarray) -> float:
-    """
-    Calculate the Euclidean distance
-
-    Parameters
-    ----------
-    ts1: the first time series
-    ts2: the second time series
-
-    Returns
-    -------
-    ed_dist: euclidean distance between ts1 and ts2
-    """
-    
-    ed_dist = 0
-
-    # INSERT YOUR CODE
-
+def ED_distance(ts1, ts2):
+    squared_diff = (ts1 - ts2) ** 2
+    sum_squared_diff = np.sum(squared_diff)
+    ed_dist = np.sqrt(sum_squared_diff) 
     return ed_dist
 
 
-def norm_ED_distance(ts1: np.ndarray, ts2: np.ndarray) -> float:
+def norm_ED_distance(ts1, ts2):
     """
-    Calculate the normalized Euclidean distance
+    Calculate the normalized Euclidean distance.
 
     Parameters
     ----------
-    ts1: the first time series
-    ts2: the second time series
+    ts1 : numpy.ndarray
+        The first time series.
+
+    ts2 : numpy.ndarray
+        The second time series.
 
     Returns
     -------
-    norm_ed_dist: normalized Euclidean distance between ts1 and ts2s
+    norm_ed_dist : float
+        The normalized Euclidean distance between ts1 and ts2.
     """
 
     norm_ed_dist = 0
 
-    # INSERT YOUR CODE
+    m = len(ts1)
+    
+    norm_ed_dist = np.sqrt(abs(2*m* (1 - (np.dot(ts1,ts2) - m * (sum(ts1)/m) * (sum(ts2)/m)) / (m * np.sqrt( sum(ts1**2 - (sum(ts1)/m)**2) / m ) * np.sqrt( sum(ts2**2 - (sum(ts2)/m)**2) / m ) ))))
 
     return norm_ed_dist
 
 
-def DTW_distance(ts1: np.ndarray, ts2: np.ndarray, r: float = 1) -> float:
-    """
-    Calculate DTW distance
-
-    Parameters
-    ----------
-    ts1: first time series
-    ts2: second time series
-    r: warping window size
+def DTW_distance(ts1, ts2, r=None):
+  n = len(ts1)
+  cost_matrix = np.full((n, n), np.inf)
+  cost_matrix[0, 0] = (ts1[0] - ts2[0]) ** 2
     
-    Returns
-    -------
-    dtw_dist: DTW distance between ts1 and ts2
-    """
+  if r is None:
+    r = max(n, n)
 
-    dtw_dist = 0
-
-    # INSERT YOUR CODE
-
-    return dtw_dist
+  for i in range(1, n):
+    for j in range(max(1, i - r), min(n, i + r)):
+      cost = (ts1[i] - ts2[j]) ** 2
+      cost_matrix[i, j] = cost + min(cost_matrix[i - 1, j], cost_matrix[i, j - 1], cost_matrix[i - 1, j - 1])
+ 
+  dtw_dist = cost_matrix[n - 1, n - 1]
+    
+  return dtw_dist

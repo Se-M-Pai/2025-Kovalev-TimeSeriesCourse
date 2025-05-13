@@ -7,25 +7,33 @@ from plotly.offline import init_notebook_mode
 import plotly.graph_objs as go
 import plotly.express as px
 plotly.offline.init_notebook_mode(connected=True)
+import pandas as pd
 
 from modules.mp import *
 
 
-def heads_tails(consumptions: dict, cutoff, house_idx: list) -> dict, dict:
+def heads_tails(consumptions, cutoff, house_idx):
     """
-    Split time series into two parts: Head and Tail
+    Split time series into two parts: Head and Tail.
 
     Parameters
     ---------
-    consumptions: set of time series
-    cutoff: pandas.Timestamp
-        Cut-off point
-    house_idx: indices of houses
+    consumptions : dict
+        Set of time series.
+
+    cutoff : pandas.Timestamp
+        Cut-off point.
+
+    house_idx : list
+        Indices of houses.
 
     Returns
     --------
-    heads: heads of time series
-    tails: tails of time series
+    heads : dict
+        Heads of time series.
+
+    tails : dict
+        Tails of time series.
     """
 
     heads, tails = {}, {}
@@ -36,41 +44,74 @@ def heads_tails(consumptions: dict, cutoff, house_idx: list) -> dict, dict:
     return heads, tails
 
 
-def meter_swapping_detection(heads: dict, tails: dict, house_idx: dict, m: int) -> dict:
+def meter_swapping_detection(heads, tails, house_idx, m):
     """
-    Find the swapped time series pair
+    Find the swapped time series pair.
 
     Parameters
     ---------
-    heads: heads of time series
-    tails: tails of time series
-    house_idx: indices of houses
-    m: subsequence length
+    heads : dict
+        Heads of time series.
+
+    tails : dict
+        Tails of time series.
+
+    house_idx : list
+        Indices of houses.
+
+    m : int
+        Subsequence length.
 
     Returns
     --------
-    min_score: time series pair with minimum swap-score
+    min_score : dict
+       Time series pair with minimum swap-score.
     """
 
     eps = 0.001
 
     min_score = {}
 
-    # INSERT YOUR CODE
-    
+    T = len(heads.keys())
+    combin = []
+
+    for k in range(1,T+1):
+      for i in range(1,T**2+1):
+        h_keys = list(heads.keys())[(i-1)%T]
+        t_keys = list(tails.keys())[(i-1 // T + (k-1)) % T]
+        h_series = heads[h_keys]
+        t_series = tails[t_keys]
+        Hi = pd.concat([h_series,t_series])
+        combin.append(Hi)
+    for i in range(len(combin)):
+      print(combin[i])
+
+    min_dis = np.inf
+
+    for i in range(len(combin)):
+      for j in range (i+1, len(combin)):
+        print(i, '\n',j)
+        mp = compute_mp(combin[i], m, combin[j])
+        min_mp = min(mp['mp'])
+        min_score = (min_mp)/(min_mp+eps)
+
     return min_score
 
 
-def plot_consumptions_ts(consumptions: dict, cutoff, house_idx: list):
+def plot_consumptions_ts(consumptions, cutoff, house_idx):
     """
-    Plot a set of input time series and cutoff vertical line
+    Plot a set of input time series and cutoff vertical line.
 
     Parameters
     ---------
-    consumptions: set of time series
-    cutoff: pandas.Timestamp
-        Cut-off point
-    house_idx: indices of houses
+    consumptions : dict
+        Set of time series.
+
+    cutoff : pandas.Timestamp
+        Cut-off point.
+
+    house_idx : list
+        Indices of houses.
     """
 
     num_ts = len(consumptions)
